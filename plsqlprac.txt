@@ -1,0 +1,130 @@
+create or replace type  cust_tab13 as object
+(cust_id number,cust_name varchar2(20),plan_name varchar2(20));
+
+create type cust_details13 as varray(5) of cust_tab13;
+
+create table cust_tab_details13(srno number primary key,cust_info cust_details13,cust_number number);
+
+insert into cust_tab_details13 values(11,cust_details13(cust_tab13(1,'pooja','idea'),cust_tab13(2,'shefu','idea1')),13664);
+
+insert into cust_tab_details13 values(12,cust_details13(cust_tab13(2,'shraddha','vodafone'),cust_tab13(3,'simi','idea2')),4656);
+
+select c.srno,T.* from cust_tab_details13 c,table(c.cust_info)T;
+
+SELECT B.CUST_ID,B.NAME,T.* FROM CUST_BOOKING1 B, TABLE (B.BOOKING_LIST)T;
+
+
+
+================================================================
+
+create or replace type paper_obj10 as object
+(paperid number,papername varchar2(20),publishdate date);
+
+create type paper_details10 as varray(3) of paper_obj10;
+
+create table author_tab10(author_id number primary key,author_name varchar2(20),papers paper_details10);
+
+insert into author_tab10 values(11,'pooja',paper_details10(paper_obj10(1,'toi','12-may-2014'),paper_obj10(2,'toi','15-jun-2015')));
+
+insert into author_tab10 values(12,'shefu',paper_details10(paper_obj10(2,'sakal','17-jun-2019'),paper_obj10(3,'sakal','18-apr-1998')));
+
+
+
+===================================================
+
+create or replace type Address_Object16 as object
+(house_no number,
+street varchar2(20),
+city varchar2(20),
+pincode number,
+state varchar2(20));
+
+create or replace type AddressTab16 as varray(4) of Address_Object16;
+
+create table Student16(student_id number primary key,student_name varchar2(20),student_address AddressTab16);
+
+insert into Student16 values(123,'pooja',AddressTab16(Address_Object16(1,'wakad','pune',411005,'maharashtra'),Address_Object16(2,'aundh','pune',411005,'maharashtra')));
+
+insert into Student16 values(124,'shefu',AddressTab16(Address_Object16(2,'hinjewadi','pune',411004,'maharashtra'),Address_Object16(3,'aundh','pune',411005,'maharashtra')));
+
+select T.city,T.pincode,T.state  from Student16 s,Table(s.student_Address)T where s.student_id=123;
+
+===================================
+
+Procedure:=
+
+create or replace procedure GenerateReport(p_eno emp.empno%type)as
+v emp%rowtype;
+cursor c1 is select e.empno,e.ename,e.deptno from emp e,emp m where e.sal < (select e.sal from emp e where e.empno=p_eno);
+vk emp%rowtype;
+cursor c2 is select e.empno,e.ename,e.deptno from emp e,emp m where e.sal > (select e.sal from emp e where e.empno=p_eno);
+
+begin
+for v in c1
+loop
+dbms_output.put_line(c1%rowcount||'employee no'||v.empno||'employee name'||v.ename||'department no'||v.deptno);
+end loop;
+for vk in c2
+loop
+dbms_output.put_line(c2%rowcount||'employee no'||vk.empno||'employee name'||vk.ename||'department no'||vk.deptno);
+end loop;
+exception
+when no_data_found then
+dbms_output.put_line('invalid empno');
+end;
+/
+
+execute GenerateReport(7788); 
+
+
+========================================>
+
+create or replace package salary_pack as
+function validateid(p_dno dept.deptno%type) return boolean;
+procedure salary(p_dno dept.deptno%type);
+end;
+/
+
+
+create or replace package body salary_pack as
+function validateid(p_dno dept.deptno%type) return boolean as
+ct number;
+begin
+select count(p_dno) into ct from dept where deptno=p_dno;
+if ct=1 then
+return true;
+dbms_output.put_line('order is valid');
+else
+return false;
+end if;
+end;
+
+procedure salary(p_dno dept.deptno%type) as
+v_dno dept.deptno%type;
+v_dname dept.dname%type;
+begin
+if(validateid(p_dno)) then
+select deptno,dname into v_dno,v_dname from dept where deptno=p_dno;
+dbms_output.put_line('**********************************************');
+dbms_output.put_line('Department id  '||  v_dno  ||'Department Name  '||  v_dname);
+
+
+end if;
+exception 
+when no_data_found then
+dbms_output.put_line('invalid');
+
+end;
+end;
+
+execute salary_pack.salary(10); 
+
+
+
+
+
+
+
+
+
+
