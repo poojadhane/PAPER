@@ -1,0 +1,131 @@
+create table executive(executive_id number(3),executive_salary number,executive_role varchar2(20));
+
+insert into executive values(11,1300,'manager');
+ 
+insert into executive values(12,null,'clerk');
+
+
+create or replace procedure update_salary(p_exe executive.executive_id%type) as
+is_null exception;
+v_sal executive.executive_salary%type;
+v_role executive.executive_role%type;
+begin
+	begin
+		select executive_salary into v_sal from executive where executive_id=p_exe;
+		if v_sal is null then
+			raise is_null;
+		end if;
+		exception 
+			when is_null then
+			dbms_output.put_line('salary is null');
+	end;
+
+select executive_role into v_role from executive where executive_id=p_exe;
+if v_role='manager' then
+	update executive set executive_salary=executive_salary*1.03 where executive_id=p_exe;
+	dbms_output.put_line('salary updated' || p_exe || 'in executive table');
+else
+	update executive set executive_salary=executive_salary*1.02 where executive_id=p_exe;
+	dbms_output.put_line('salary updated' || p_exe || 'in executive table');
+end if;
+exception 
+when no_data_found then
+dbms_output.put_line('invalid executive id');	
+
+end;	
+
+execute update_salary(13);
+
+select * from executive;
+
+=====================================================================================================
+
+
+create table hotel(hotel_code varchar2(20),hotel_name varchar2(20),hotel_address varchar2(20),hotel_city varchar2(20),hotel_no_rooms number);
+
+create table executive_roster(executive_id number(20),Schedule_start_time number(3),schedule_end_time number,hotel_code varchar2(20));
+
+insert into executive_roster values(11,4,6,'Wovo_Jha');
+
+insert into executive_roster values(12,5,7,'Wovo_Pha');
+
+insert into executive_roster values(13,7,8,'Wovo_A11');
+
+insert into hotel values('Wovo_Jha','GreenPark','Pune','Pune',5);
+
+insert into hotel values('Wovo_Pha','Marriot','Pune','Pune',6);
+
+insert into hotel values('Wovo_A11','Abc12','Pune','Pune',7);
+
+----------------------------------------------------------------------
+
+
+create or replace package hotel_details as 
+procedure print_report(p_code hotel.hotel_code%type);
+end;
+/
+
+create or replace package body hotel_details as
+function validate_hotel(p_code hotel.hotel_code%type) return boolean as
+ct number;
+begin
+	select count(*) into ct from hotel where hotel_code=p_code;
+	if ct=1 then
+		return true;
+	else
+		return false;
+	end if;
+end;
+
+procedure print_report(p_code hotel.hotel_code%type) as
+vk hotel%rowtype;
+cursor  c1 is select e.executive_id,e.executive_role,r.schedule_start_time,r.schedule_end_time from executive e,executive_roster r where e.executive_id=r.executive_id and r.hotel_code=p_code;
+v c1%rowtype;
+begin
+	if validate_hotel(p_code) then
+		select *  into vk  from hotel where hotel_code=p_code;
+		dbms_output.put_line('hotel code is   ' || vk.hotel_code);
+		dbms_output.put_line('hotel name is   ' || vk.hotel_name);
+		dbms_output.put_line('hotel_address is  '||vk.hotel_address);
+		dbms_output.put_line('hotel city is   '||vk.hotel_city);
+		dbms_output.put_line('hotel no of rooms   '|| vk.hotel_no_rooms);
+		
+		for v in c1
+		loop
+		dbms_output.put_line('Sr no ' ||  ' executive id ' || '  executive role' || 'schedule_start_time' || 		'schedule_end_time');
+		dbms_output.put_line(c1%rowcount             || v.executive_id             || v.executive_role                || v.schedule_start_time          || v.schedule_end_time          );
+		end loop;
+	end if;
+	exception 
+	when no_data_found then
+	dbms_output.put_line('invalid hotel code');
+end;
+end;
+
+
+execute hotel_details.print_report('Wovo_Jha');
+
+select e.executive_id,e.executive_role,r.schedule_start_time,r.schedule_end_time from executive e,executive_roster r where e.executive_id=r.executive_id;
+	
+===========================================================================
+create or replace  type address_object as object(
+
+
+
+CREATE OR REPLACE TYPE Address_Object123 AS OBJECT(House_No number, street varchar2(30), City varchar2(20), Pincode number, State varchar2(20));
+/
+
+CREATE OR REPLACE TYPE AddressTab123 AS TABLE of Address_Object123;
+/
+
+CREATE TABLE student123(Student_id number primary key, Student_Name varchar2(20), Student_address AddressTab123) nested TABLE Student_address stORe AS Address_Object_Tab123
+
+INSERT INTO student123 VALUES(101,'Akash',AddressTab123(Address_Object123(1234,'Hinjewadi','Pune',435261,'MaharAShtra'),Address_Object123(1456,'Nigadi','Pune',487431,'MaharAShtra')));
+
+INSERT INTO student123 VALUES(102,'Pari',AddressTab123(Address_Object123(765,'Belapur','Mumbai',465298,'MaharAShtra'),Address_Object123(842,'Dadar','Mumbai',432191,'MaharAShtra')));
+
+INSERT INTO student123 VALUES(103,'Ravina',AddressTab123(Address_Object123(987,'Medha','Satara',415012,'MaharAShtra'),Address_Object123(3456,'Baner','Pune',456841,'MaharAShtra')));
+
+select s.Student_Name,t.City,t.State,t.Street from student123 s,table(s.Student_address)t where s.Student_id=101;
+
+	
